@@ -62,25 +62,28 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
+html {
+  margin: 0; padding: 0;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 body {
+  margin: 0; padding: 0;
+  height: 100%;
   background: #09090b;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
 }
 
 #root {
+  margin: 0; padding: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #09090b;
-  min-height: 100vh;
-  min-height: 100dvh;
+  overflow: hidden;
 }
 
 .app {
@@ -91,10 +94,18 @@ body {
   font-feature-settings: "cv11", "ss01", "tnum";
   letter-spacing: -0.011em;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* fills the content area between header and tab bar */
+.screen-inner {
   flex: 1;
   display: flex;
   flex-direction: column;
-  position: relative;
+  min-height: 0;
   overflow: hidden;
 }
 

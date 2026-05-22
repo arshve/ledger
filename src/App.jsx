@@ -196,7 +196,7 @@ export default function App() {
 
   return (
     <div className="app" data-theme={theme} data-density={density}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
         {tab === 'inbox' && (
           pending.length > 0 ? (
             <InboxFocused
