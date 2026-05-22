@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react'
-import StatusBar from './components/StatusBar'
 import TabBar from './components/TabBar'
 import InboxFocused, { InboxDone } from './screens/InboxFocused'
 import ExpenseDetail from './screens/ExpenseDetail'
@@ -127,7 +126,7 @@ export default function App() {
     enabled: hotkeysEnabled,
     onConfirm: handleConfirm,
     onReject: handleReject,
-    onEdit: () => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id }),
+    onEdit: () => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true }),
   })
 
   const sharedProps = { theme, onToggleTheme: toggleTheme }
@@ -173,7 +172,6 @@ export default function App() {
     if (overlay.view === VIEW.SOURCE) {
       return (
         <div className="app" data-theme={theme} data-density={density}>
-          <StatusBar />
           <EmailSource expense={expense} onBack={() => setOverlay(prev => ({ ...prev, view: VIEW.DETAIL }))} />
         </div>
       )
@@ -182,7 +180,6 @@ export default function App() {
     if (overlay.view === VIEW.DETAIL) {
       return (
         <div className="app" data-theme={theme} data-density={density}>
-          <StatusBar />
           <ExpenseDetail
             expense={expense}
             onBack={() => setOverlay(null)}
@@ -190,6 +187,7 @@ export default function App() {
             onReject={handleRejectFromDetail}
             onViewSource={() => setOverlay(prev => ({ ...prev, view: VIEW.SOURCE }))}
             onEdit={handleEdit}
+            initialEditing={overlay.editing || false}
           />
         </div>
       )
@@ -198,8 +196,6 @@ export default function App() {
 
   return (
     <div className="app" data-theme={theme} data-density={density}>
-      <StatusBar />
-
       {tab === 'inbox' && (
         pending.length > 0 ? (
           <InboxFocused
@@ -209,12 +205,14 @@ export default function App() {
             onReject={handleReject}
             onViewSource={() => pending[safePendingIdx] && setOverlay({ view: VIEW.SOURCE, expenseId: pending[safePendingIdx].id })}
             onViewDetail={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id })}
+            onViewEdit={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true })}
             {...sharedProps}
           />
         ) : (
           <InboxDone
             onViewHistory={() => setTab('history')}
             onViewInsights={() => setTab('insights')}
+            onRefresh={fetchExpenses}
           />
         )
       )}

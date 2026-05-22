@@ -26,8 +26,8 @@ function DetailRow({ label, value, icon, onClick, chevron }) {
   )
 }
 
-export default function ExpenseDetail({ expense, onBack, onConfirm, onReject, onViewSource, onEdit }) {
-  const [editing, setEditing] = useState(false)
+export default function ExpenseDetail({ expense, onBack, onConfirm, onReject, onViewSource, onEdit, initialEditing = false }) {
+  const [editing, setEditing] = useState(initialEditing)
 
   useHotkeys({
     enabled: !editing,

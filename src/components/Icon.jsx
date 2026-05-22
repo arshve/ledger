@@ -29,6 +29,7 @@ const paths = {
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></>,
   moon: <><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" /></>,
   filter: <><path d="M3 5h18M6 12h12M10 19h4" /></>,
+  plus:   <><path d="M12 5v14M5 12h14" /></>,
 }
 
 export default function Icon({ name, size = 16, stroke = 1.6 }) {

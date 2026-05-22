@@ -5,6 +5,8 @@ import { CATS, formatIDR, formatIDRShort } from '../data/expenses'
 import { getStats, getSettings, updateSettings, listExpenses } from '../api'
 import { groupLabel, getWeekDates, getDayAbbr, getDayLabel, computeCats } from '../lib/date'
 import useHotkeys from '../hooks/useHotkeys'
+import { getPaymentMethods, savePaymentMethods } from '../lib/paymentMethods'
+import { getCategories, saveCategories } from '../lib/categories'
 
 // ── Shared sub-components ──────────────────────────────────────
 
@@ -797,11 +799,175 @@ function SourcesPane() {
 // ── Settings pane ──────────────────────────────────────────────
 
 const SETTINGS_SECTIONS = [
-  { id: 'appearance', label: 'Appearance', icon: 'sun' },
-  { id: 'budget',     label: 'Budget',     icon: 'chart' },
-  { id: 'accounts',   label: 'Accounts',   icon: 'card' },
-  { id: 'openclaw',   label: 'OpenClaw',   icon: 'sparkle' },
+  { id: 'appearance',  label: 'Appearance',       icon: 'sun'     },
+  { id: 'budget',      label: 'Budget',           icon: 'chart'   },
+  { id: 'categories',  label: 'Categories',       icon: 'list'    },
+  { id: 'methods',     label: 'Payment methods',  icon: 'card'    },
+  { id: 'accounts',    label: 'Accounts',         icon: 'receipt' },
+  { id: 'openclaw',    label: 'OpenClaw',         icon: 'sparkle' },
 ]
+
+const DESKTOP_ICON_OPTIONS = ['food','cart','coffee','car','tv','home','plane','receipt','card','note','sparkle','pin','clock','list','chart','search']
+
+function makeKey(label) {
+  const base = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+  return base || 'cat_' + Date.now()
+}
+
+function DesktopIconPicker({ value, onChange }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {DESKTOP_ICON_OPTIONS.map(ic => (
+        <button key={ic} type="button" onClick={() => onChange(ic)} style={{
+          width: 34, height: 34, borderRadius: 8, border: 'none',
+          background: value === ic ? 'var(--ink)' : 'var(--surface-2)',
+          color: value === ic ? 'var(--bg)' : 'var(--ink-2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+        }}>
+          <Icon name={ic} size={14} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function CategoriesDesktop() {
+  const [cats, setCats]         = useState(getCategories)
+  const [editKey, setEditKey]   = useState(null)
+  const [editLabel, setEditLabel] = useState('')
+  const [editIcon, setEditIcon] = useState('receipt')
+  const [adding, setAdding]     = useState(false)
+  const [newLabel, setNewLabel] = useState('')
+  const [newIcon, setNewIcon]   = useState('receipt')
+
+  const commit = (updated) => { setCats(updated); saveCategories(updated) }
+
+  const startEdit = (c) => {
+    setAdding(false)
+    setEditKey(c.key); setEditLabel(c.label); setEditIcon(c.icon || CATS[c.key]?.icon || 'receipt')
+  }
+
+  const saveEdit = () => {
+    if (!editLabel.trim()) return
+    commit(cats.map(c => c.key === editKey ? { ...c, label: editLabel.trim(), icon: editIcon } : c))
+    setEditKey(null)
+  }
+
+  const toggle = (key) => commit(cats.map(c => c.key === key ? { ...c, enabled: !c.enabled } : c))
+
+  const remove = (key) => { commit(cats.filter(c => c.key !== key)); if (editKey === key) setEditKey(null) }
+
+  const addCat = () => {
+    if (!newLabel.trim()) return
+    let key = makeKey(newLabel)
+    if (cats.some(c => c.key === key)) key = key + '_' + Date.now()
+    commit([...cats, { key, label: newLabel.trim(), icon: newIcon, enabled: true }])
+    setAdding(false); setNewLabel(''); setNewIcon('receipt')
+  }
+
+  const FIELD = { padding: '8px 12px', border: '1px solid var(--accent)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', fontSize: 13, fontFamily: 'inherit', outline: 'none', width: '100%' }
+
+  return (
+    <>
+      <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4, paddingTop: 24 }}>Categories</div>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 20 }}>Add, edit, or hide categories. Disabled ones won't appear in the expense form.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+        {cats.map(c => {
+          const iconName = c.icon || CATS[c.key]?.icon || 'receipt'
+          const isEditing = editKey === c.key
+          return (
+            <div key={c.key} style={{ borderBottom: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--bg)', userSelect: 'none' }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-2)', flexShrink: 0 }}>
+                  <Icon name={iconName} size={13} />
+                </div>
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: c.enabled ? 'var(--ink)' : 'var(--ink-3)' }}>{c.label}</span>
+                <button onClick={() => isEditing ? setEditKey(null) : startEdit(c)} style={{ background: 'transparent', border: 'none', color: isEditing ? 'var(--accent)' : 'var(--ink-3)', cursor: 'pointer', padding: 5, display: 'flex', borderRadius: 6 }}>
+                  <Icon name="edit" size={14} />
+                </button>
+                <div onClick={() => toggle(c.key)} style={{ width: 38, height: 22, borderRadius: 11, background: c.enabled ? 'var(--ink)' : 'var(--surface-2)', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s' }}>
+                  <div style={{ position: 'absolute', top: 3, width: 16, height: 16, borderRadius: '50%', background: 'var(--bg)', left: c.enabled ? 19 : 3, transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+                </div>
+                <button onClick={() => remove(c.key)} style={{ background: 'transparent', border: 'none', color: 'var(--ink-4)', cursor: 'pointer', padding: 5, display: 'flex', borderRadius: 6 }}>
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+              {isEditing && (
+                <div style={{ padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--surface)' }}>
+                  <input value={editLabel} onChange={e => setEditLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEdit()} style={FIELD} autoFocus />
+                  <DesktopIconPicker value={editIcon} onChange={setEditIcon} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => setEditKey(null)} style={{ flex: 1, padding: '7px', border: '1px solid var(--line-2)', borderRadius: 8, background: 'transparent', color: 'var(--ink-2)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                    <button onClick={saveEdit} style={{ flex: 2, padding: '7px', border: 'none', borderRadius: 8, background: 'var(--ink)', color: 'var(--bg)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Save</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {adding ? (
+          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--surface)' }}>
+            <input value={newLabel} onChange={e => setNewLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCat()} placeholder="Category name" style={FIELD} autoFocus />
+            <DesktopIconPicker value={newIcon} onChange={setNewIcon} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setAdding(false); setNewLabel('') }} style={{ flex: 1, padding: '7px', border: '1px solid var(--line-2)', borderRadius: 8, background: 'transparent', color: 'var(--ink-2)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={addCat} style={{ flex: 2, padding: '7px', border: 'none', borderRadius: 8, background: 'var(--ink)', color: 'var(--bg)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => { setAdding(true); setEditKey(null) }} style={{ padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface)', border: 'none', color: 'var(--accent)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%' }}>
+            <Icon name="plus" size={14} />
+            Add category
+          </button>
+        )}
+      </div>
+    </>
+  )
+}
+
+function PaymentMethodsDesktop() {
+  const [methods, setMethods] = useState(getPaymentMethods)
+  const [newVal, setNewVal]   = useState('')
+
+  const save = (updated) => { setMethods(updated); savePaymentMethods(updated) }
+  const remove = (m) => save(methods.filter(x => x !== m))
+  const add = () => {
+    const v = newVal.trim()
+    if (!v || methods.includes(v)) return
+    save([...methods, v]); setNewVal('')
+  }
+
+  const INPUT_STYLE = { padding: '8px 12px', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }
+
+  return (
+    <>
+      <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4, paddingTop: 24 }}>Payment methods</div>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 20 }}>Methods available when editing an expense. Changes apply immediately.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+        {methods.map(m => (
+          <div key={m} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg)', borderBottom: '1px solid var(--line)' }}>
+            <span style={{ fontSize: 14, fontWeight: 500 }}>{m}</span>
+            <button onClick={() => remove(m)} style={{ background: 'transparent', border: 'none', color: 'var(--ink-3)', cursor: 'pointer', padding: 4, display: 'flex', borderRadius: 6 }}>
+              <Icon name="x" size={14} />
+            </button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 8, padding: '12px 16px', background: 'var(--surface)' }}>
+          <input
+            value={newVal}
+            onChange={e => setNewVal(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && add()}
+            placeholder="e.g. BCA •• 1234"
+            style={{ ...INPUT_STYLE, flex: 1 }}
+          />
+          <button onClick={add} style={{ background: 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Add
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
 
 function SettingsPane({ theme, onToggleTheme, density, onToggleDensity }) {
   const [section, setSection]     = useState('appearance')
@@ -897,6 +1063,10 @@ function SettingsPane({ theme, onToggleTheme, density, onToggleDensity }) {
         </div>
       </>
     ),
+
+    categories: <CategoriesDesktop />,
+
+    methods: <PaymentMethodsDesktop />,
 
     accounts: (
       <>

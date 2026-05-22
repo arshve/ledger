@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { CATS } from '../data/expenses'
+import { getPaymentMethods } from '../lib/paymentMethods'
+import { getCategories } from '../lib/categories'
 import { patchExpense } from '../api'
+import Icon from './Icon'
 
 const INPUT = {
   width: '100%', padding: '9px 12px', border: '1px solid var(--line-2)',
@@ -10,7 +13,7 @@ const INPUT = {
 
 const LABEL = {
   fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-  letterSpacing: '0.07em', color: 'var(--ink-3)', marginBottom: 4,
+  letterSpacing: '0.07em', color: 'var(--ink-3)', marginBottom: 6,
 }
 
 function Field({ label, children }) {
@@ -22,7 +25,43 @@ function Field({ label, children }) {
   )
 }
 
+function ChipPicker({ options, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(opt => {
+        const active = value === opt.value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '7px 12px', borderRadius: 10, border: 'none',
+              background: active ? 'var(--ink)' : 'var(--surface-2)',
+              color: active ? 'var(--bg)' : 'var(--ink-2)',
+              fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'background 0.1s, color 0.1s',
+            }}
+          >
+            {opt.icon && <Icon name={opt.icon} size={12} />}
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function ExpenseForm({ expense, onSave, onCancel }) {
+  const methods = getPaymentMethods()
+
+  // if current method isn't in the list, include it so it shows as selected
+  const methodOptions = methods.includes(expense.method)
+    ? methods
+    : [expense.method, ...methods]
+
   const [fields, setFields] = useState({
     merchant: expense.merchant,
     amount:   expense.amount,
@@ -36,6 +75,7 @@ export default function ExpenseForm({ expense, onSave, onCancel }) {
   const [error, setError]   = useState(null)
 
   const set = k => e => setFields(f => ({ ...f, [k]: e.target.value }))
+  const setPick = k => v => setFields(f => ({ ...f, [k]: v }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -49,9 +89,12 @@ export default function ExpenseForm({ expense, onSave, onCancel }) {
     }
   }
 
+  const catOptions = getCategories()
+    .filter(c => c.enabled || c.key === fields.cat)
+    .map(c => ({ value: c.key, label: c.label, icon: c.icon || (CATS[c.key]?.icon) || 'receipt' }))
+
   return (
-    // Enter on any single-line input submits; textarea gets normal newline behaviour
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Field label="Merchant">
         <input style={INPUT} value={fields.merchant} onChange={set('merchant')} />
       </Field>
@@ -59,14 +102,18 @@ export default function ExpenseForm({ expense, onSave, onCancel }) {
         <input style={INPUT} type="number" min="0" value={fields.amount} onChange={set('amount')} />
       </Field>
       <Field label="Category">
-        <select style={INPUT} value={fields.cat} onChange={set('cat')}>
-          {Object.entries(CATS).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
-          ))}
-        </select>
+        <ChipPicker
+          options={catOptions}
+          value={fields.cat}
+          onChange={setPick('cat')}
+        />
       </Field>
       <Field label="Payment method">
-        <input style={INPUT} value={fields.method} onChange={set('method')} />
+        <ChipPicker
+          options={methodOptions.map(m => ({ value: m, label: m }))}
+          value={fields.method}
+          onChange={setPick('method')}
+        />
       </Field>
       <Field label="Place / description">
         <input style={INPUT} value={fields.place} onChange={set('place')} />

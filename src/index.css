@@ -91,35 +91,12 @@ body {
   font-feature-settings: "cv11", "ss01", "tnum";
   letter-spacing: -0.011em;
   width: 100%;
-  max-width: 480px;
   height: 100%;
   height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-}
-
-/* status bar */
-.statusbar {
-  height: calc(44px + var(--safe-top));
-  padding-top: var(--safe-top);
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding-left: 28px;
-  padding-right: 28px;
-  padding-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.02em;
-}
-.statusbar .icons {
-  display: flex;
-  gap: 6px;
-  align-items: center;
 }
 
 /* tab bar */
@@ -167,7 +144,7 @@ body {
 
 /* header */
 .shdr {
-  padding: 8px var(--pad) var(--pad-sm);
+  padding: max(var(--safe-top), 12px) var(--pad) var(--pad-sm);
   display: flex;
   flex-direction: column;
   gap: 4px;

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Icon from '../components/Icon'
 import ThemeToggle from '../components/ThemeToggle'
 import { CATS, formatIDR } from '../data/expenses'
@@ -20,7 +21,7 @@ function MiniRow({ icon, label, value, onClick, chev }) {
   )
 }
 
-export default function InboxFocused({ pending, idx, onConfirm, onReject, onViewSource, onViewDetail, theme, onToggleTheme }) {
+export default function InboxFocused({ pending, idx, onConfirm, onReject, onViewSource, onViewDetail, onViewEdit, theme, onToggleTheme }) {
   const expense = pending[idx]
   const cat = expense ? CATS[expense.cat] : null
 
@@ -120,7 +121,7 @@ export default function InboxFocused({ pending, idx, onConfirm, onReject, onView
               <span>Confirm</span>
             </button>
           </div>
-          <button className="btn ghost" onClick={onViewDetail} style={{ height: 36, fontSize: 13 }}>
+          <button className="btn ghost" onClick={onViewEdit || onViewDetail} style={{ height: 36, fontSize: 13 }}>
             <Icon name="edit" size={14} />
             Edit details first
           </button>
@@ -130,7 +131,15 @@ export default function InboxFocused({ pending, idx, onConfirm, onReject, onView
   )
 }
 
-export function InboxDone({ onViewHistory, onViewInsights }) {
+export function InboxDone({ onViewHistory, onViewInsights, onRefresh }) {
+  const [spinning, setSpinning] = useState(false)
+
+  const handleRefresh = async () => {
+    if (spinning) return
+    setSpinning(true)
+    try { await onRefresh?.() } finally { setSpinning(false) }
+  }
+
   return (
     <div
       className="screen-body"
@@ -149,6 +158,20 @@ export function InboxDone({ onViewHistory, onViewInsights }) {
         <button className="btn outline" style={{ height: 36, fontSize: 13 }} onClick={onViewHistory}>View history</button>
         <button className="btn primary" style={{ height: 36, fontSize: 13 }} onClick={onViewInsights}>Open insights</button>
       </div>
+      <button
+        onClick={handleRefresh}
+        style={{
+          marginTop: 4, background: 'transparent', border: 'none', color: 'var(--ink-3)',
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer',
+          fontFamily: 'inherit', padding: '6px 10px', borderRadius: 8,
+        }}
+      >
+        <span style={{ display: 'inline-block', animation: spinning ? 'spin 0.7s linear infinite' : 'none' }}>
+          <Icon name="arrUp" size={14} />
+        </span>
+        {spinning ? 'Checking…' : 'Check for new'}
+      </button>
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
