@@ -10,6 +10,7 @@ import DesktopApp from './screens/DesktopApp'
 import { listExpenses, patchExpense, deleteExpense } from './api'
 import { decorate } from './lib/date'
 import useHotkeys from './hooks/useHotkeys'
+import useSwipeBack from './hooks/useSwipeBack'
 
 const VIEW = { DETAIL: 'detail', SOURCE: 'source' }
 const DESKTOP_BREAKPOINT = 900
@@ -171,9 +172,19 @@ export default function App() {
   if (overlay) {
     const expense = expenses.find(e => e.id === overlay.expenseId)
 
+    const swipeBack = () => {
+      if (overlay.view === VIEW.SOURCE) {
+        setOverlay(prev => ({ ...prev, view: VIEW.DETAIL }))
+      } else {
+        setOverlay(null)
+      }
+    }
+
+    const swipeProps = useSwipeBack({ onSwipeBack: swipeBack, enabled: !isDesktop })
+
     if (overlay.view === VIEW.SOURCE) {
       return (
-        <div className="app" data-theme={theme} data-density={density}>
+        <div className="app" data-theme={theme} data-density={density} {...swipeProps}>
           <EmailSource expense={expense} onBack={() => setOverlay(prev => ({ ...prev, view: VIEW.DETAIL }))} />
         </div>
       )
@@ -181,7 +192,7 @@ export default function App() {
 
     if (overlay.view === VIEW.DETAIL) {
       return (
-        <div className="app" data-theme={theme} data-density={density}>
+        <div className="app" data-theme={theme} data-density={density} {...swipeProps}>
           <ExpenseDetail
             expense={expense}
             onBack={() => setOverlay(null)}

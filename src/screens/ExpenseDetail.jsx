@@ -47,12 +47,9 @@ export default function ExpenseDetail({ expense, onBack, onConfirm, onReject, on
 
   return (
     <>
-      {/* topbar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px 4px', flexShrink: 0 }}>
-        <button
-          onClick={onBack}
-          style={{ background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-2)', fontSize: 14, padding: '6px 6px 6px 4px', cursor: 'pointer' }}
-        >
+      {/* topbar — safe-area aware */}
+      <div className="overlay-topbar">
+        <button onClick={onBack}>
           <Icon name="chevL" size={18} />
           Inbox
         </button>

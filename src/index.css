@@ -63,15 +63,16 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 /*
-  Fullscreen strategy:
-  - Pure % chain: html → body → #root → .app all 100% height
-  - .app position:fixed;inset:0 on mobile — bulletproof on any browser
-  - Hardcoded #09090b bg on body/#root prevents gap color bleed
-  - Tabbar solid background (no backdrop-filter — iOS PWA rendering gaps)
+  Fullscreen (iOS PWA):
+  - html height set by --rh (real viewport from inline <script>)
+  - 100vh fallback for non-iOS browsers
+  - No position:fixed — pure flex chain: html → body → #root → .app
+  - Hardcoded #09090b bg at every level prevents gap color bleed
+  - Tabbar: solid bg, fixed height, no safe-area addition (causes overflow gap)
 */
 html {
   margin: 0; padding: 0;
-  height: 100%;
+  height: var(--rh, 100vh);
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -93,17 +94,6 @@ body {
   flex-direction: column;
   background: #09090b;
   overflow: hidden;
-}
-
-/*
-  Mobile: position:fixed pins .app to exact viewport.
-  iOS PWA can't miscalculate because we're not using vh/dvh units.
-*/
-@media (max-width: 899px) {
-  .app {
-    position: fixed !important;
-    inset: 0 !important;
-  }
 }
 
 .app {
@@ -129,15 +119,16 @@ body {
   overflow: hidden;
 }
 
-/* tab bar — solid bg */
+/* tab bar — solid bg, NO extra safe-bottom margin (causes overflow gap on iOS) */
 .tabbar {
-  height: calc(76px + var(--safe-bottom));
+  height: 76px;
   flex: 0 0 auto;
   border-top: 1px solid var(--line);
   background: var(--surface);
   display: flex;
   align-items: flex-start;
   padding-top: 10px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .tabbar .tab {
   flex: 1;
@@ -198,6 +189,27 @@ body {
   font-size: 13px;
   color: var(--ink-2);
   margin-top: 2px;
+}
+
+/* overlay top bar — safe-area aware */
+.overlay-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(env(safe-area-inset-top, 0px), 44px) 14px 4px;
+  flex-shrink: 0;
+}
+.overlay-topbar button {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: 14px;
+  padding: 6px 6px 6px 4px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 /* pill badge */
