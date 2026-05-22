@@ -5,6 +5,7 @@ import { getSettings, updateSettings } from '../api'
 import { getPaymentMethods, savePaymentMethods } from '../lib/paymentMethods'
 import { getCategories, saveCategories } from '../lib/categories'
 import { CATS } from '../data/expenses'
+import useSwipeBack from '../hooks/useSwipeBack'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -92,6 +93,7 @@ function CategoriesScreen({ onBack }) {
   const [adding, setAdding]     = useState(false)
   const [newLabel, setNewLabel] = useState('')
   const [newIcon, setNewIcon]   = useState('receipt')
+  const swipe = useSwipeBack({ onSwipeBack: onBack })
 
   const commit = (updated) => { setCats(updated); saveCategories(updated) }
 
@@ -125,7 +127,7 @@ function CategoriesScreen({ onBack }) {
   )
 
   return (
-    <>
+    <div {...swipe} style={{flex:1,display:"flex",flexDirection:"column"}}>
       <SubHeader title="Categories" onBack={onBack} />
       <div className="screen-body">
         <div style={{ fontSize: 12, color: 'var(--ink-3)', padding: '12px var(--pad) 4px' }}>
@@ -208,7 +210,7 @@ function CategoriesScreen({ onBack }) {
           </button>
         )}
       </div>
-    </>
+    </div>
   )
 }
 
@@ -217,6 +219,7 @@ function CategoriesScreen({ onBack }) {
 function PaymentMethodsScreen({ onBack }) {
   const [methods, setMethods] = useState(getPaymentMethods)
   const [newVal, setNewVal]   = useState('')
+  const swipe = useSwipeBack({ onSwipeBack: onBack })
 
   const save = (updated) => { setMethods(updated); savePaymentMethods(updated) }
   const remove = (m) => save(methods.filter(x => x !== m))
@@ -227,7 +230,7 @@ function PaymentMethodsScreen({ onBack }) {
   }
 
   return (
-    <>
+    <div {...swipe} style={{flex:1,display:"flex",flexDirection:"column"}}>
       <SubHeader title="Payment methods" onBack={onBack} />
       <div className="screen-body">
         <div style={{ fontSize: 12, color: 'var(--ink-3)', padding: '12px var(--pad) 4px' }}>
@@ -254,7 +257,7 @@ function PaymentMethodsScreen({ onBack }) {
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
