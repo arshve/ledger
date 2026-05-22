@@ -196,37 +196,38 @@ export default function App() {
 
   return (
     <div className="app" data-theme={theme} data-density={density}>
-      {tab === 'inbox' && (
-        pending.length > 0 ? (
-          <InboxFocused
-            pending={pending}
-            idx={safePendingIdx}
-            onConfirm={handleConfirm}
-            onReject={handleReject}
-            onViewSource={() => pending[safePendingIdx] && setOverlay({ view: VIEW.SOURCE, expenseId: pending[safePendingIdx].id })}
-            onViewDetail={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id })}
-            onViewEdit={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true })}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {tab === 'inbox' && (
+          pending.length > 0 ? (
+            <InboxFocused
+              pending={pending}
+              idx={safePendingIdx}
+              onConfirm={handleConfirm}
+              onReject={handleReject}
+              onViewSource={() => pending[safePendingIdx] && setOverlay({ view: VIEW.SOURCE, expenseId: pending[safePendingIdx].id })}
+              onViewDetail={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id })}
+              onViewEdit={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true })}
+              {...sharedProps}
+            />
+          ) : (
+            <InboxDone
+              onViewHistory={() => setTab('history')}
+              onViewInsights={() => setTab('insights')}
+              onRefresh={fetchExpenses}
+            />
+          )
+        )}
+
+        {tab === 'history'  && <History  confirmed={confirmed} {...sharedProps} onSelect={e => setOverlay({ view: VIEW.DETAIL, expenseId: e.id })} onDelete={handleDelete} />}
+        {tab === 'insights' && <Dashboard {...sharedProps} />}
+        {tab === 'settings' && (
+          <Settings
             {...sharedProps}
+            density={density}
+            onToggleDensity={toggleDensity}
           />
-        ) : (
-          <InboxDone
-            onViewHistory={() => setTab('history')}
-            onViewInsights={() => setTab('insights')}
-            onRefresh={fetchExpenses}
-          />
-        )
-      )}
-
-      {tab === 'history'  && <History  confirmed={confirmed} {...sharedProps} onSelect={e => setOverlay({ view: VIEW.DETAIL, expenseId: e.id })} onDelete={handleDelete} />}
-      {tab === 'insights' && <Dashboard {...sharedProps} />}
-      {tab === 'settings' && (
-        <Settings
-          {...sharedProps}
-          density={density}
-          onToggleDensity={toggleDensity}
-        />
-      )}
-
+        )}
+      </div>
       <TabBar active={tab} onChange={t => { setTab(t); setOverlay(null) }} />
     </div>
   )
