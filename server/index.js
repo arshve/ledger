@@ -1,10 +1,16 @@
 import 'dotenv/config'
 import express from 'express'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import db from './db.js'
 
 const app  = express()
 const PORT = process.env.PORT || 3001
 const TOKEN = process.env.API_TOKEN
+const __dir = dirname(fileURLToPath(import.meta.url))
+
+const distDir = join(__dir, '..', 'dist')
+app.use(express.static(distDir))
 
 app.use(express.json())
 
@@ -173,6 +179,15 @@ app.delete('/api/expenses/:id', (req, res) => {
   if (!row) return res.status(404).json({ error: 'Not found' })
   db.prepare('DELETE FROM expenses WHERE id = ?').run(req.params.id)
   res.json({ deleted: req.params.id })
+})
+
+// SPA fallback — all non-API GET routes serve the frontend
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    res.sendFile(join(distDir, 'index.html'))
+  } else {
+    next()
+  }
 })
 
 app.listen(PORT, () => console.log(`Ledger API on :${PORT}`))

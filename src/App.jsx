@@ -25,8 +25,23 @@ function useIsDesktop() {
   return isDesktop
 }
 
+/* iOS Safari / PWA: force re-layout when visual viewport resizes (address bar hides) */
+function useVisualViewport() {
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const handler = () => {
+      document.documentElement.style.setProperty('--vh', vv.height + 'px')
+    }
+    handler()
+    vv.addEventListener('resize', handler)
+    return () => vv.removeEventListener('resize', handler)
+  }, [])
+}
+
 export default function App() {
   const isDesktop = useIsDesktop()
+  useVisualViewport()
 
   const [theme, setTheme]     = useState(() => localStorage.getItem('theme') || 'dark')
   const [density, setDensity] = useState(() => localStorage.getItem('density') || 'cozy')
