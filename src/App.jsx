@@ -25,12 +25,10 @@ function useIsDesktop() {
   return isDesktop
 }
 
-/* --vh set by <script> in index.html before first paint */
-// no-op — the inline script in index.html handles it
+
 
 export default function App() {
   const isDesktop = useIsDesktop()
-  // useVisualViewport() removed — inline <script> in index.html handles --vh
 
   const [theme, setTheme]     = useState(() => localStorage.getItem('theme') || 'dark')
   const [density, setDensity] = useState(() => localStorage.getItem('density') || 'cozy')
@@ -139,7 +137,7 @@ export default function App() {
     return (
       <div
         data-theme={theme}
-        style={{ width: '100vw', height: 'var(--vh, 100dvh)', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', fontSize: 13 }}
+        style={{ width: '100vw', height: '100dvh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', fontSize: 13 }}
       >
         Loading…
       </div>
@@ -152,7 +150,7 @@ export default function App() {
       <div
         data-theme={theme}
         data-density={density}
-        style={{ width: '100vw', height: 'var(--vh, 100dvh)', background: 'var(--bg)', fontFamily: 'var(--font-sans)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}
+        style={{ width: '100vw', height: '100dvh', background: 'var(--bg)', fontFamily: 'var(--font-sans)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}
       >
         <DesktopApp
           expenses={expenses}

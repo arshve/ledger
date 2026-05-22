@@ -62,10 +62,16 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/*
+  iOS PWA height fix:
+  - 100dvh = dynamic viewport (iOS 15.4+). Adjusts when address bar hides.
+  - -webkit-fill-available = legacy iOS Safari fallback.
+  - Hardcoded #09090b at every level ensures no gap color bleed.
+  - background on body/#root uses hardcoded dark so it matches .app even before theme loads.
+*/
 html {
   margin: 0; padding: 0;
-  height: 100dvh;
-  height: var(--vh, 100dvh);
+    
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -73,8 +79,7 @@ html {
 
 body {
   margin: 0; padding: 0;
-  height: 100%;
-  background: #09090b;
+    background: #09090b;
   overscroll-behavior: none !important;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
@@ -83,8 +88,7 @@ body {
 
 #root {
   margin: 0; padding: 0;
-  height: 100%;
-  display: flex;
+    display: flex;
   flex-direction: column;
   background: #09090b;
   overflow: hidden;
@@ -98,10 +102,18 @@ body {
   font-feature-settings: "cv11", "ss01", "tnum";
   letter-spacing: -0.011em;
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+@media (max-width: 899px) {
+  .app {
+    position: fixed;
+    inset: 0;
+    height: auto;
+  }
+}
 }
 
 /* fills the content area between header and tab bar */
@@ -338,8 +350,7 @@ body {
 /* desktop layout resets */
 .app.desktop {
   max-width: 100%;
-  height: 100%;
-}
+  }
 
 /* mini chart bar */
 .bar {
@@ -350,14 +361,6 @@ body {
   position: relative;
 }
 .bar > div {
-  height: 100%;
-  background: var(--ink);
+    background: var(--ink);
   border-radius: 4px;
 }
-
-/* 
-  iOS PWA / Safari safe-area fullscreen guarantee.
-  Background chain: html → body → #root → .app all use var(--bg) so no gap visible.
-  Keep html { height: 100dvh } — dynamic viewport handles address bar hide/show.
-  Override body/#root hardcoded bg to use theme-aware var(--bg).
-*/

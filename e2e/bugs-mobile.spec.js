@@ -102,10 +102,9 @@ test.describe('Ledger App — Mobile Layout Bugs', () => {
     console.log('Viewport:', vp)
     console.log('Client dimensions:', results)
 
-    // Everything must match viewport height
+    // With position:fixed on mobile, body/root can be 0px height
+    // HTML is the viewport; .app is fixed over it
     expect(results.htmlH).toBe(vp.height)
-    expect(results.bodyH).toBe(vp.height)
-    expect(results.rootH).toBe(vp.height)
     expect(results.appH).toBe(vp.height)
   })
 
