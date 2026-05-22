@@ -63,15 +63,15 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 /*
-  iOS PWA height fix:
-  - 100dvh = dynamic viewport (iOS 15.4+). Adjusts when address bar hides.
-  - -webkit-fill-available = legacy iOS Safari fallback.
-  - Hardcoded #09090b at every level ensures no gap color bleed.
-  - background on body/#root uses hardcoded dark so it matches .app even before theme loads.
+  Fullscreen strategy:
+  - Pure % chain: html → body → #root → .app all 100% height
+  - .app position:fixed;inset:0 on mobile — bulletproof on any browser
+  - Hardcoded #09090b bg on body/#root prevents gap color bleed
+  - Tabbar solid background (no backdrop-filter — iOS PWA rendering gaps)
 */
 html {
   margin: 0; padding: 0;
-    
+  height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -79,19 +79,31 @@ html {
 
 body {
   margin: 0; padding: 0;
-    background: #09090b;
+  height: 100%;
+  background: #09090b;
   overscroll-behavior: none !important;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   margin: 0; padding: 0;
-    display: flex;
+  height: 100%;
+  display: flex;
   flex-direction: column;
   background: #09090b;
   overflow: hidden;
+}
+
+/*
+  Mobile: position:fixed pins .app to exact viewport.
+  iOS PWA can't miscalculate because we're not using vh/dvh units.
+*/
+@media (max-width: 899px) {
+  .app {
+    position: fixed !important;
+    inset: 0 !important;
+  }
 }
 
 .app {
@@ -102,18 +114,10 @@ body {
   font-feature-settings: "cv11", "ss01", "tnum";
   letter-spacing: -0.011em;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-@media (max-width: 899px) {
-  .app {
-    position: fixed;
-    inset: 0;
-    height: auto;
-  }
-}
 }
 
 /* fills the content area between header and tab bar */
@@ -125,18 +129,15 @@ body {
   overflow: hidden;
 }
 
-/* tab bar */
+/* tab bar — solid bg */
 .tabbar {
   height: calc(76px + var(--safe-bottom));
   flex: 0 0 auto;
   border-top: 1px solid var(--line);
-  background: color-mix(in oklab, var(--bg) 92%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--surface);
   display: flex;
   align-items: flex-start;
   padding-top: 10px;
-  padding-bottom: var(--safe-bottom);
 }
 .tabbar .tab {
   flex: 1;
@@ -160,7 +161,7 @@ body {
 }
 .tabbar .tab.active { color: var(--ink); }
 
-/* screen body */
+/* screen body — only scrollable area */
 .screen-body {
   flex: 1;
   overflow-y: auto;
@@ -171,15 +172,6 @@ body {
 .screen-body::-webkit-scrollbar { display: none; }
 
 /* header */
-/* screen inner — stretch to fill flex space, scroll body inside */
-.screen-inner {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .shdr {
   padding: max(var(--safe-top), 12px) var(--pad) var(--pad-sm);
   display: flex;
@@ -236,14 +228,12 @@ body {
   display: inline-block;
 }
 
-/* divider */
 .div-line {
   height: 1px;
   background: var(--line);
   margin: 0 var(--pad);
 }
 
-/* category icon dot */
 .cat-dot {
   width: 32px;
   height: 32px;
@@ -256,7 +246,6 @@ body {
   color: var(--ink-2);
 }
 
-/* amount typography */
 .amt {
   font-family: var(--font-display);
   font-feature-settings: "tnum";
@@ -347,10 +336,11 @@ body {
   flex-shrink: 0;
 }
 
-/* desktop layout resets */
+/* desktop */
 .app.desktop {
   max-width: 100%;
-  }
+  height: 100%;
+}
 
 /* mini chart bar */
 .bar {
@@ -361,6 +351,7 @@ body {
   position: relative;
 }
 .bar > div {
-    background: var(--ink);
+  height: 100%;
+  background: var(--ink);
   border-radius: 4px;
 }
