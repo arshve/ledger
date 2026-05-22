@@ -132,6 +132,16 @@ export default function App() {
     onEdit: () => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true }),
   })
 
+  const swipeBackHandler = useCallback(() => {
+    if (overlay?.view === VIEW.SOURCE) {
+      setOverlay(prev => ({ ...prev, view: VIEW.DETAIL }))
+    } else {
+      setOverlay(null)
+    }
+  }, [overlay])
+
+  const swipeProps = useSwipeBack({ onSwipeBack: swipeBackHandler, enabled: !isDesktop && !!overlay })
+
   const sharedProps = { theme, onToggleTheme: toggleTheme }
 
   if (loading) {
@@ -171,16 +181,6 @@ export default function App() {
   // ── Mobile layout ───────────────────────────────────────────
   if (overlay) {
     const expense = expenses.find(e => e.id === overlay.expenseId)
-
-    const swipeBack = () => {
-      if (overlay.view === VIEW.SOURCE) {
-        setOverlay(prev => ({ ...prev, view: VIEW.DETAIL }))
-      } else {
-        setOverlay(null)
-      }
-    }
-
-    const swipeProps = useSwipeBack({ onSwipeBack: swipeBack, enabled: !isDesktop })
 
     if (overlay.view === VIEW.SOURCE) {
       return (
