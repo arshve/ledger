@@ -42,7 +42,7 @@ function SettingRow({ label, sub, onClick, children }) {
 
 function SubHeader({ title, onBack }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px var(--pad) 4px', flexShrink: 0, borderBottom: '1px solid var(--line)' }}>
+    <div className="subheader">
       <button
         onClick={onBack}
         style={{ background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-2)', fontSize: 14, padding: '6px 6px 6px 0', cursor: 'pointer', fontFamily: 'inherit' }}
