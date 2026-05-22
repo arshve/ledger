@@ -65,6 +65,7 @@
 html {
   margin: 0; padding: 0;
   height: 100dvh;
+  height: var(--vh, 100dvh);
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -89,10 +90,6 @@ body {
   overflow: hidden;
 }
 
-/* 
-  Mobile: position fixed locks the app to viewport exactly.
-  Prevents iOS Safari/PWA bottom gap and elastic overscroll.
-*/
 .app {
   font-family: var(--font-sans);
   color: var(--ink);
@@ -105,13 +102,6 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-@media (max-width: 899px) {
-  .app {
-    position: fixed;
-    inset: 0;
-    height: auto;
-  }
 }
 
 /* fills the content area between header and tab bar */
@@ -364,3 +354,10 @@ body {
   background: var(--ink);
   border-radius: 4px;
 }
+
+/* 
+  iOS PWA / Safari safe-area fullscreen guarantee.
+  Background chain: html → body → #root → .app all use var(--bg) so no gap visible.
+  Keep html { height: 100dvh } — dynamic viewport handles address bar hide/show.
+  Override body/#root hardcoded bg to use theme-aware var(--bg).
+*/
