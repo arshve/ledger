@@ -28,7 +28,7 @@ export default function InboxFocused({ pending, idx, onConfirm, onReject, onView
   if (!expense) return null
 
   return (
-    <>
+    <div className="screen-inner">
       {/* topbar with progress */}
       <div style={{ padding: '8px var(--pad) 0', display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginRight: -8 }}>
@@ -127,7 +127,7 @@ export default function InboxFocused({ pending, idx, onConfirm, onReject, onView
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

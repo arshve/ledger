@@ -142,6 +142,15 @@ body {
 .screen-body::-webkit-scrollbar { display: none; }
 
 /* header */
+/* screen inner — stretch to fill flex space, scroll body inside */
+.screen-inner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .shdr {
   padding: max(var(--safe-top), 12px) var(--pad) var(--pad-sm);
   display: flex;

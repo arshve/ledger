@@ -283,7 +283,7 @@ export default function Settings({ theme, onToggleTheme, density, onToggleDensit
   if (view === 'categories') return <CategoriesScreen     onBack={() => setView(null)} />
 
   return (
-    <>
+    <div className="screen-inner">
       <div className="shdr" style={{ flexShrink: 0 }}>
         <h1>Settings</h1>
       </div>
@@ -367,6 +367,6 @@ export default function Settings({ theme, onToggleTheme, density, onToggleDensit
           Ledger v1.0.0 · Built for personal use
         </div>
       </div>
-    </>
+    </div>
   )
 }

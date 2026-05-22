@@ -161,7 +161,7 @@ export default function History({ confirmed, theme, onToggleTheme, onSelect, onD
   const months = allMonths.length > 0 ? allMonths : [currentMonth]
 
   return (
-    <>
+    <div className="screen-inner">
       <div className="shdr" style={{ flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <h1>History</h1>
@@ -268,6 +268,6 @@ export default function History({ confirmed, theme, onToggleTheme, onSelect, onD
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

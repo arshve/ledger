@@ -38,7 +38,7 @@ export default function Dashboard({ theme, onToggleTheme }) {
   const toggleDay = (i) => setSelectedDay(prev => prev === i ? null : i)
 
   return (
-    <>
+    <div className="screen-inner">
       <div className="shdr" style={{ flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginRight: -8 }}>
           <span className="eyebrow">This month</span>
@@ -150,6 +150,6 @@ export default function Dashboard({ theme, onToggleTheme }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
