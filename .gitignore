@@ -28,3 +28,5 @@ server/*.db
 
 server/*.db-shm
 server/*.db-wal
+
+graphify-out/

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"graphify-out/GRAPH_REPORT.md\" ] && jq -Rns --arg content \"$(cat graphify-out/GRAPH_REPORT.md)\" '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":(\"Codebase graph context (graphify):\\n\\n\"+$content)}}' 2>/dev/null || true",
+            "statusMessage": "Loading graphify context…",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
