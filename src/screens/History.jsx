@@ -226,10 +226,10 @@ export default function History({ confirmed, theme, onToggleTheme, onSelect, onD
           return (
             <div key={date}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px var(--pad) 6px', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-3)' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-2)' }}>
                   {groupLabel(list[0].occurred_at)}
                 </span>
-                <span className="amt-mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>{formatIDRShort(dayTotal)}</span>
+                <span className="amt-mono" style={{ fontSize: 11, color: 'var(--ink-2)' }}>{formatIDRShort(dayTotal)}</span>
               </div>
               {list.map(e => {
                 const cat = CATS[e.cat] || CATS.food

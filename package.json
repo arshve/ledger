@@ -12,14 +12,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "better-sqlite3": "^12.10.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "workbox-window": "^7.4.1"
   },
   "devDependencies": {
+    "better-sqlite3": "^12.10.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@types/react": "^19.2.14",

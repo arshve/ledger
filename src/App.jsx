@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import TabBar from './components/TabBar'
 import InboxFocused, { InboxDone } from './screens/InboxFocused'
 import ExpenseDetail from './screens/ExpenseDetail'
@@ -54,8 +54,8 @@ export default function App() {
 
   useEffect(() => { fetchExpenses() }, [fetchExpenses])
 
-  const pending   = expenses.filter(e => e.status === 'pending')
-  const confirmed = expenses.filter(e => e.status === 'confirmed')
+  const pending   = useMemo(() => expenses.filter(e => e.status === 'pending'),   [expenses])
+  const confirmed = useMemo(() => expenses.filter(e => e.status === 'confirmed'), [expenses])
 
   const toggleTheme = useCallback(() => {
     setTheme(t => { const n = t === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', n); return n })

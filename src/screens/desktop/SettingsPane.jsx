@@ -180,6 +180,7 @@ export default function SettingsPane({ theme, onToggleTheme, density, onToggleDe
   const [budget, setBudget]         = useState('')
   const [editBudget, setEditBudget] = useState(false)
   const [saving, setSaving]         = useState(false)
+  const [saved,  setSaved]          = useState(false)
 
   useEffect(() => {
     getSettings().then(s => setBudget(s.budget || '5000000')).catch(console.error)
@@ -190,6 +191,7 @@ export default function SettingsPane({ theme, onToggleTheme, density, onToggleDe
     try {
       const s = await updateSettings({ budget: Number(budget) })
       setBudget(s.budget); setEditBudget(false)
+      setSaved(true); setTimeout(() => setSaved(false), 1500)
     } catch (e) { console.error(e) }
     finally { setSaving(false) }
   }
@@ -243,9 +245,9 @@ export default function SettingsPane({ theme, onToggleTheme, density, onToggleDe
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
                 style={{ width: 150, padding: '8px 12px', border: '1px solid var(--accent)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
-              <button onClick={saveBudget} disabled={saving}
-                style={{ background: 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
-                {saving ? 'Saving…' : 'Save'}
+              <button onClick={saveBudget} disabled={saving || saved}
+                style={{ background: saved ? 'var(--success)' : 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500, transition: 'background 0.2s' }}>
+                {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save'}
               </button>
               <button onClick={() => setEditBudget(false)}
                 style={{ background: 'transparent', border: 'none', color: 'var(--ink-3)', fontSize: 13, cursor: 'pointer', padding: '8px 4px', fontFamily: 'inherit' }}>Cancel</button>

@@ -9,7 +9,7 @@ function MiniRow({ icon, label, value, onClick, chev }) {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '12px 2px', borderTop: '1px solid var(--line)',
+        padding: 'var(--row-pad-y) 0', borderTop: '1px solid var(--line)',
         cursor: onClick ? 'pointer' : 'default',
       }}
     >

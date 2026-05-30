@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 const paths = {
   food: <><path d="M5 3v8a3 3 0 003 3v7" /><path d="M8 3v6" /><path d="M11 3v6" /><path d="M17 3c-1.5 0-3 2-3 5s1.5 4 3 4v9" /></>,
   cart: <><circle cx="9" cy="20" r="1.2" /><circle cx="18" cy="20" r="1.2" /><path d="M3 4h2l2.6 11.2a2 2 0 002 1.5h7.5a2 2 0 002-1.5L21 8H6" /></>,
@@ -32,7 +34,7 @@ const paths = {
   plus:   <><path d="M12 5v14M5 12h14" /></>,
 }
 
-export default function Icon({ name, size = 16, stroke = 1.6 }) {
+const Icon = memo(function Icon({ name, size = 16, stroke = 1.6 }) {
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24"
@@ -42,4 +44,6 @@ export default function Icon({ name, size = 16, stroke = 1.6 }) {
       {paths[name] || null}
     </svg>
   )
-}
+})
+
+export default Icon

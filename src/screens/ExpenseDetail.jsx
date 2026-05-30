@@ -119,7 +119,7 @@ export default function ExpenseDetail({ expense, onBack, onConfirm, onReject, on
                     Confirm expense
                   </button>
                 </div>
-                <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-3)', marginTop: 12 }}>
+                <div className="kbd-hint" style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-3)', marginTop: 12 }}>
                   Press E to edit · ↵ confirm · X reject
                 </div>
               </>

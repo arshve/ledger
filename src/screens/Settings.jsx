@@ -268,6 +268,7 @@ export default function Settings({ theme, onToggleTheme, density, onToggleDensit
   const [budget, setBudget]   = useState('')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving]   = useState(false)
+  const [saved,  setSaved]    = useState(false)
 
   useEffect(() => {
     getSettings().then(s => setBudget(s.budget || '5000000')).catch(console.error)
@@ -278,6 +279,7 @@ export default function Settings({ theme, onToggleTheme, density, onToggleDensit
     try {
       const s = await updateSettings({ budget: Number(budget) })
       setBudget(s.budget); setEditing(false)
+      setSaved(true); setTimeout(() => setSaved(false), 1500)
     } catch (e) { console.error(e) }
     finally { setSaving(false) }
   }
@@ -313,8 +315,8 @@ export default function Settings({ theme, onToggleTheme, density, onToggleDensit
                 type="number" value={budget} onChange={e => setBudget(e.target.value)}
                 style={{ width: 120, padding: '5px 8px', border: '1px solid var(--line-2)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink)', fontSize: 13, fontFamily: 'inherit' }}
               />
-              <button onClick={saveBudget} disabled={saving} style={{ background: 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {saving ? '…' : 'Save'}
+              <button onClick={saveBudget} disabled={saving || saved} style={{ background: saved ? 'var(--success)' : 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s' }}>
+                {saving ? '…' : saved ? '✓ Saved' : 'Save'}
               </button>
               <button onClick={() => setEditing(false)} style={{ background: 'transparent', border: 'none', color: 'var(--ink-3)', fontSize: 12, cursor: 'pointer', padding: '5px 4px', fontFamily: 'inherit' }}>
                 Cancel

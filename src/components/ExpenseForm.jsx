@@ -98,8 +98,11 @@ export default function ExpenseForm({ expense, onSave, onCancel }) {
       <Field label="Merchant">
         <input style={INPUT} value={fields.merchant} onChange={set('merchant')} />
       </Field>
-      <Field label="Amount (IDR)">
-        <input style={INPUT} type="number" min="0" value={fields.amount} onChange={set('amount')} />
+      <Field label="Amount">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ color: 'var(--ink-3)', fontSize: 13, flexShrink: 0 }}>Rp</span>
+          <input style={{ ...INPUT, flex: 1 }} type="number" min="0" value={fields.amount} onChange={set('amount')} />
+        </div>
       </Field>
       <Field label="Category">
         <ChipPicker
