@@ -6,6 +6,19 @@ async function req(path, method = 'GET', body) {
   return res.json()
 }
 
+export const scanReceipt  = async (base64Image) => {
+  const res = await fetch('/api/expenses/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64Image })
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error || `Scan failed (${res.status})`)
+  }
+  return res.json()
+}
+
 export const listExpenses  = (params = {}) => {
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null))
   return req('/api/expenses' + (qs.size ? '?' + qs : ''))

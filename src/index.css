@@ -50,13 +50,15 @@ body{margin:0;padding:0;height:100%;background:#09090b;overflow:hidden;-webkit-t
 .btn.reject{background:var(--surface-2);color:var(--ink)}
 .btn.ghost{background:transparent;color:var(--ink-2)}
 .btn.outline{background:transparent;border:1px solid var(--line-2);color:var(--ink)}
-.row{display:flex;align-items:center;gap:12px;padding:var(--row-pad-y) var(--pad);cursor:pointer}
+.row{display:flex;align-items:center;gap:12px;padding:var(--row-pad-y) var(--pad);cursor:pointer;overflow:hidden}
 .row:active{background:var(--surface)}
 .row .body{flex:1;min-width:0;overflow:hidden}
 .row .merchant{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .row .meta{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;min-width:0}
 .row .meta .sep{width:2px;height:2px;border-radius:50%;background:var(--ink-4);display:inline-block;flex-shrink:0}
-.row .right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.row .right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;min-width:0}
 .app.desktop{max-width:100%;height:100%}
 .bar{flex:1;background:var(--surface-2);border-radius:4px;overflow:hidden;position:relative}
 .bar>div{height:100%;background:var(--ink);border-radius:4px}
+
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes scanPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.7}}@keyframes ringPulse{0%,100%{transform:scale(0.9);opacity:.2}50%{transform:scale(1.15);opacity:.5}}

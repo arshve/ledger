@@ -116,7 +116,7 @@ function SwipeRow({ id, openId, onOpen, onDelete, onClick, children }) {
       >
         {/* row content — always 100% of visible container */}
         <div
-          style={{ flex: `0 0 calc(100% - ${SNAP}px)`, background: 'var(--bg)' }}
+          style={{ flex: `0 0 calc(100% - ${SNAP}px)`, background: 'var(--bg)', overflow: 'hidden', minWidth: 0 }}
           onClick={handleRowClick}
         >
           {children}
@@ -245,7 +245,7 @@ export default function History({ confirmed, theme, onToggleTheme, onSelect, onD
                     <div className="row">
                       <div className="cat-dot"><Icon name={cat.icon} size={14} /></div>
                       <div className="body">
-                        <span className="merchant">{e.merchant}</span>
+                        <div className="merchant">{e.merchant}</div>
                         <span className="meta">
                           <span>{e.place}</span>
                           <span className="sep" />

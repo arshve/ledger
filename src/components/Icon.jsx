@@ -1,5 +1,3 @@
-import { memo } from 'react'
-
 const paths = {
   food: <><path d="M5 3v8a3 3 0 003 3v7" /><path d="M8 3v6" /><path d="M11 3v6" /><path d="M17 3c-1.5 0-3 2-3 5s1.5 4 3 4v9" /></>,
   cart: <><circle cx="9" cy="20" r="1.2" /><circle cx="18" cy="20" r="1.2" /><path d="M3 4h2l2.6 11.2a2 2 0 002 1.5h7.5a2 2 0 002-1.5L21 8H6" /></>,
@@ -25,6 +23,8 @@ const paths = {
   card: <><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10h18" /><path d="M7 15h3" /></>,
   note: <><path d="M5 4h10l4 4v12H5z" /><path d="M14 4v5h5" /><path d="M8 13h7M8 16h5" /></>,
   sparkle: <><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" /></>,
+  refresh: <><path d="M21 12a9 9 0 01-9 9 9 9 0 01-9-8" /><path d="M3 12a9 9 0 018-9 9 9 0 019 8" /><path d="M12 3v5h5M12 21v-5H7" /></>,
+  camera: <><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></>,
   arrUp: <><path d="M12 19V5M5 12l7-7 7 7" /></>,
   arrDn: <><path d="M12 5v14M5 12l7 7 7-7" /></>,
   search: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
@@ -33,6 +33,8 @@ const paths = {
   filter: <><path d="M3 5h18M6 12h12M10 19h4" /></>,
   plus:   <><path d="M12 5v14M5 12h14" /></>,
 }
+
+import { memo } from 'react'
 
 const Icon = memo(function Icon({ name, size = 16, stroke = 1.6 }) {
   return (

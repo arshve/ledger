@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import TabBar from './components/TabBar'
 import InboxFocused, { InboxDone } from './screens/InboxFocused'
 import ExpenseDetail from './screens/ExpenseDetail'
@@ -7,8 +7,11 @@ import Dashboard from './screens/Dashboard'
 import History from './screens/History'
 import Settings from './screens/Settings'
 import DesktopApp from './screens/DesktopApp'
-import { listExpenses, patchExpense, deleteExpense } from './api'
+import { listExpenses, patchExpense, deleteExpense, scanReceipt } from './api'
 import { decorate } from './lib/date'
+import Icon from './components/Icon'
+import StepsOverlay from './components/StepsOverlay'
+import { formatIDRShort } from './data/expenses'
 import useHotkeys from './hooks/useHotkeys'
 import useSwipeBack from './hooks/useSwipeBack'
 
@@ -26,7 +29,38 @@ function useIsDesktop() {
   return isDesktop
 }
 
+// ── Toast component ───────────────────────────────────────────
 
+function Toast({ message, type, onDismiss }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 4000)
+    return () => clearTimeout(t)
+  }, [onDismiss])
+
+  const bg = type === 'error' ? 'var(--danger)' : 'var(--success)'
+  return (
+    <div style={{
+      position: 'fixed', bottom: 72, left: 12, right: 12, zIndex: 9999,
+      background: bg, color: '#fff',
+      padding: '10px 14px', borderRadius: 10, fontSize: 13,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+      animation: 'slideUp 0.2s ease',
+    }}>
+      <span>{message}</span>
+      <button onClick={onDismiss} style={{
+        background: 'transparent', border: 'none', color: '#fff',
+        fontSize: 16, cursor: 'pointer', marginLeft: 8, padding: 0,
+      }}>×</button>
+    </div>
+  )
+}
+
+const SCAN_STEPS = [
+  { label: 'Reading image…',          sub: 'Converting snapshot to base64', icon: 'camera' },
+  { label: 'Sending to MiMo vision…', sub: 'AI processing the receipt',     icon: 'upload' },
+  { label: 'Parsing transaction data…', sub: 'Extracting merchant & amounts', icon: 'list' },
+]
 
 export default function App() {
   const isDesktop = useIsDesktop()
@@ -40,6 +74,16 @@ export default function App() {
 
   const [reviewIdx]   = useState(0)
   const [overlay, setOverlay] = useState(null)
+  const [toast, setToast] = useState(null) // { message, type }
+  const [scanning, setScanning] = useState(false)
+  const [scanStep, setScanStep] = useState(0)
+  const fileRef = useRef(null)
+
+  const showToast = useCallback((message, type = 'error') => {
+    setToast({ message, type })
+  }, [])
+
+  const dismissToast = useCallback(() => setToast(null), [])
 
   const fetchExpenses = useCallback(async () => {
     try {
@@ -47,10 +91,11 @@ export default function App() {
       setExpenses(rows.map(decorate))
     } catch (e) {
       console.error('fetch expenses', e)
+      showToast('Failed to load expenses — check connection', 'error')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [showToast])
 
   useEffect(() => { fetchExpenses() }, [fetchExpenses])
 
@@ -73,41 +118,67 @@ export default function App() {
     const expense = pending[reviewIdx]
     if (!expense) return
     try { applyPatch(await patchExpense(expense.id, { status: 'confirmed' })) }
-    catch (e) { console.error(e); fetchExpenses() }
-  }, [pending, reviewIdx, applyPatch, fetchExpenses])
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to confirm', 'error') }
+  }, [pending, reviewIdx, applyPatch, fetchExpenses, showToast])
+
+  const handleScan = useCallback(async (file) => {
+    if (!file || scanning) return
+    setScanning(true)
+    setScanStep(0)
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const base64 = e.target.result.split(',')[1]
+      try {
+        await new Promise(r => setTimeout(r, 1000))
+        setScanStep(1)
+        await new Promise(r => setTimeout(r, 1000))
+        setScanStep(2)
+        const result = await scanReceipt(base64)
+        const items = Array.isArray(result) ? result : [result]
+        showToast(`${items.length} expense${items.length > 1 ? 's' : ''} scanned: ${items.map(i => formatIDRShort(i.amount)).join(', ')}`, 'success')
+        await fetchExpenses()
+        setScanStep(3)
+        await new Promise(r => setTimeout(r, 1200))
+      } catch (err) {
+        showToast(err.message, 'error')
+      } finally { setScanning(false); setScanStep(0) }
+    }
+    reader.onerror = () => { showToast('Failed to read image', 'error'); setScanning(false) }
+    reader.readAsDataURL(file)
+  }, [scanning, fetchExpenses, showToast])
 
   const handleReject = useCallback(async () => {
     const expense = pending[reviewIdx]
     if (!expense) return
     try { applyPatch(await patchExpense(expense.id, { status: 'rejected' })) }
-    catch (e) { console.error(e); fetchExpenses() }
-  }, [pending, reviewIdx, applyPatch, fetchExpenses])
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to reject', 'error') }
+  }, [pending, reviewIdx, applyPatch, fetchExpenses, showToast])
 
   // mobile detail overlay confirm/reject
   const handleConfirmFromDetail = useCallback(async () => {
     if (!overlay?.expenseId) return
     try { applyPatch(await patchExpense(overlay.expenseId, { status: 'confirmed' })) }
-    catch (e) { console.error(e); fetchExpenses() }
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to confirm', 'error') }
     setOverlay(null)
-  }, [overlay, applyPatch, fetchExpenses])
+  }, [overlay, applyPatch, fetchExpenses, showToast])
 
   const handleRejectFromDetail = useCallback(async () => {
     if (!overlay?.expenseId) return
     try { applyPatch(await patchExpense(overlay.expenseId, { status: 'rejected' })) }
-    catch (e) { console.error(e); fetchExpenses() }
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to reject', 'error') }
     setOverlay(null)
-  }, [overlay, applyPatch, fetchExpenses])
+  }, [overlay, applyPatch, fetchExpenses, showToast])
 
   // desktop confirm/reject (by id)
   const handleDesktopConfirm = useCallback(async id => {
     try { applyPatch(await patchExpense(id, { status: 'confirmed' })) }
-    catch (e) { console.error(e); fetchExpenses() }
-  }, [applyPatch, fetchExpenses])
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to confirm', 'error') }
+  }, [applyPatch, fetchExpenses, showToast])
 
   const handleDesktopReject = useCallback(async id => {
     try { applyPatch(await patchExpense(id, { status: 'rejected' })) }
-    catch (e) { console.error(e); fetchExpenses() }
-  }, [applyPatch, fetchExpenses])
+    catch (e) { console.error(e); fetchExpenses(); showToast('Failed to reject', 'error') }
+  }, [applyPatch, fetchExpenses, showToast])
 
   const handleEdit = useCallback((updated) => {
     applyPatch(decorate(updated))
@@ -118,8 +189,8 @@ export default function App() {
       await deleteExpense(id)
       setExpenses(prev => prev.filter(e => e.id !== id))
       setOverlay(prev => prev?.expenseId === id ? null : prev)
-    } catch (e) { console.error(e); fetchExpenses() }
-  }, [fetchExpenses])
+    } catch (e) { console.error(e); fetchExpenses(); showToast('Failed to delete', 'error') }
+  }, [fetchExpenses, showToast])
 
   const safePendingIdx = Math.min(reviewIdx, Math.max(0, pending.length - 1))
 
@@ -174,6 +245,7 @@ export default function App() {
           density={density}
           onToggleDensity={toggleDensity}
         />
+        {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />}
       </div>
     )
   }
@@ -211,28 +283,73 @@ export default function App() {
     <div className="app" data-theme={theme} data-density={density}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
         {tab === 'inbox' && (
-          pending.length > 0 ? (
-            <InboxFocused
-              pending={pending}
-              idx={safePendingIdx}
-              onConfirm={handleConfirm}
-              onReject={handleReject}
-              onViewSource={() => pending[safePendingIdx] && setOverlay({ view: VIEW.SOURCE, expenseId: pending[safePendingIdx].id })}
-              onViewDetail={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id })}
-              onViewEdit={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true })}
-              {...sharedProps}
+          <>
+            {pending.length > 0 ? (
+              <InboxFocused
+                pending={pending}
+                idx={safePendingIdx}
+                onConfirm={handleConfirm}
+                onReject={handleReject}
+                onViewSource={() => pending[safePendingIdx] && setOverlay({ view: VIEW.SOURCE, expenseId: pending[safePendingIdx].id })}
+                onViewDetail={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id })}
+                onViewEdit={() => pending[safePendingIdx] && setOverlay({ view: VIEW.DETAIL, expenseId: pending[safePendingIdx].id, editing: true })}
+                {...sharedProps}
+              />
+            ) : (
+              <InboxDone
+                onViewHistory={() => setTab('history')}
+                onViewInsights={() => setTab('insights')}
+                onRefresh={fetchExpenses}
+              />
+            )}
+
+            {/* hidden file input */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleScan(f); e.target.value = '' }}
             />
-          ) : (
-            <InboxDone
-              onViewHistory={() => setTab('history')}
-              onViewInsights={() => setTab('insights')}
-              onRefresh={fetchExpenses}
-            />
-          )
+
+            {/* scanning overlay */}
+            {scanning && (
+              <StepsOverlay steps={SCAN_STEPS} currentStep={scanStep} onCancel={() => { setScanning(false); setScanStep(0) }} />
+            )}
+
+            {/* floating scan button */}
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={scanning}
+              style={{
+                position: 'fixed', bottom: 76, right: 16, zIndex: scanning ? 50 : 100,
+                width: 52, height: 52, borderRadius: '50%',
+                background: 'var(--accent)',
+                border: 'none', color: '#fff', cursor: scanning ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                opacity: scanning ? 0 : 1,
+                transition: 'opacity 0.2s, transform 0.1s',
+                transform: scanning ? 'scale(0.5)' : 'scale(1)',
+              }}
+            >
+              <Icon name="camera" size={22} />
+            </button>
+          </>
         )}
 
-        {tab === 'history'  && <History  confirmed={confirmed} {...sharedProps} onSelect={e => setOverlay({ view: VIEW.DETAIL, expenseId: e.id })} onDelete={handleDelete} />}
-        {tab === 'insights' && <Dashboard {...sharedProps} />}
+        {tab === 'history'  && (
+          <History
+            confirmed={confirmed}
+            {...sharedProps}
+            onSelect={e => setOverlay({ view: VIEW.DETAIL, expenseId: e.id })}
+            onDelete={handleDelete}
+            onRefresh={fetchExpenses}
+          />
+        )}
+        {tab === 'insights' && (
+          <Dashboard {...sharedProps} />
+        )}
         {tab === 'settings' && (
           <Settings
             {...sharedProps}
@@ -242,6 +359,7 @@ export default function App() {
         )}
       </div>
       <TabBar active={tab} onChange={t => { setTab(t); setOverlay(null) }} />
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />}
     </div>
   )
 }

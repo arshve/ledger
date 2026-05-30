@@ -7,6 +7,8 @@ export const CATS = {
   utility:      { icon: 'home',    label: 'Utilities'      },
   travel:       { icon: 'plane',   label: 'Travel'         },
   groceries:    { icon: 'cart',    label: 'Groceries'      },
+  sport:        { icon: 'pin',     label: 'Sports'         },
+  general:      { icon: 'receipt', label: 'Other'          },
 }
 
 export const formatIDR = n => 'Rp ' + new Intl.NumberFormat('id-ID').format(n)

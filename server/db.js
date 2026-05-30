@@ -34,6 +34,18 @@ db.exec(`
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS receipt_examples (
+    id         TEXT PRIMARY KEY,
+    merchant   TEXT NOT NULL,
+    image_hash TEXT NOT NULL,
+    fields     TEXT NOT NULL,
+    raw_mimo   TEXT NOT NULL DEFAULT '',
+    hit_count  INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_receipt_merchant ON receipt_examples(merchant);
 `)
 
 const hasSetting = db.prepare('SELECT 1 FROM settings WHERE key = ?')
